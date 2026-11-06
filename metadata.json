@@ -1,0 +1,7 @@
+{
+  "name": "NEXUS — Orbit Studio Intelligence",
+  "description": "One system. Every operation. Total control. Intelligent business operating system for Orbits Studio website development business.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
