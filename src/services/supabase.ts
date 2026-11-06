@@ -1,3 +1,5 @@
+import { safeStorage } from '../utils/storage';
+
 export interface SupabaseConfig {
   supabaseUrl: string;
   supabaseAnonKey: string;
@@ -10,7 +12,7 @@ const SUPABASE_STORAGE_KEY = 'nexus_supabase_config';
 export class SupabaseService {
   static getConfig(): SupabaseConfig {
     try {
-      const raw = localStorage.getItem(SUPABASE_STORAGE_KEY);
+      const raw = safeStorage.getItem(SUPABASE_STORAGE_KEY);
       if (raw) return JSON.parse(raw);
     } catch (e) {
       console.error('Error reading Supabase config:', e);
@@ -29,7 +31,11 @@ export class SupabaseService {
       isConnected: false,
       lastTestedAt: new Date().toISOString(),
     };
-    localStorage.setItem(SUPABASE_STORAGE_KEY, JSON.stringify(config));
+    try {
+      safeStorage.setItem(SUPABASE_STORAGE_KEY, JSON.stringify(config));
+    } catch (e) {
+      console.error('Error saving Supabase config:', e);
+    }
     return config;
   }
 
@@ -51,7 +57,7 @@ export class SupabaseService {
       if (response.ok || response.status === 200 || response.status === 404) {
         const config = this.saveConfig(url, key);
         config.isConnected = true;
-        localStorage.setItem(SUPABASE_STORAGE_KEY, JSON.stringify(config));
+        safeStorage.setItem(SUPABASE_STORAGE_KEY, JSON.stringify(config));
         return {
           success: true,
           message: 'Connection to Supabase established successfully. PostgreSQL schema verified.',
@@ -71,6 +77,8 @@ export class SupabaseService {
   }
 
   static disconnect(): void {
-    localStorage.removeItem(SUPABASE_STORAGE_KEY);
+    try {
+      safeStorage.removeItem(SUPABASE_STORAGE_KEY);
+    } catch {}
   }
 }

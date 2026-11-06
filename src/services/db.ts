@@ -14,6 +14,7 @@ import {
   BusinessTask,
 } from '../types/nexus';
 import { formatINR } from '../utils/format';
+import { safeStorage } from '../utils/storage';
 
 const STORAGE_KEYS = {
   USERS: 'nexus_inr_users_v2',
@@ -734,12 +735,12 @@ const INITIAL_ACTIVITY_LOGS: ActivityLog[] = [
   },
 ];
 
-// Helper to load or initialize from localStorage
+// Helper to load or initialize from storage safely
 function loadData<T>(key: string, defaultData: T): T {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = safeStorage.getItem(key);
     if (!raw) {
-      localStorage.setItem(key, JSON.stringify(defaultData));
+      safeStorage.setItem(key, JSON.stringify(defaultData));
       return defaultData;
     }
     return JSON.parse(raw);
@@ -751,7 +752,7 @@ function loadData<T>(key: string, defaultData: T): T {
 
 function saveData<T>(key: string, data: T): void {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
+    safeStorage.setItem(key, JSON.stringify(data));
   } catch (e) {
     console.error(`Error saving ${key} to storage:`, e);
   }
@@ -765,17 +766,25 @@ export class NexusDatabase {
   }
 
   static getCurrentUser(): UserProfile {
-    const users = this.getUsers();
-    const currentId = localStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID) || 'user-founder';
-    return users.find((u) => u.id === currentId) || users[0];
+    try {
+      const users = this.getUsers();
+      const currentId = safeStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID) || 'user-founder';
+      return users.find((u) => u.id === currentId) || users[0] || INITIAL_USERS[0];
+    } catch {
+      return INITIAL_USERS[0];
+    }
   }
 
   static setCurrentUser(userId: string): UserProfile {
-    const users = this.getUsers();
-    const target = users.find((u) => u.id === userId) || users[0];
-    localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, target.id);
-    this.logActivity(target.name, target.role, 'Switched Active Session', 'SYSTEM', `Active session switched to ${target.name} (${target.role})`);
-    return target;
+    try {
+      const users = this.getUsers();
+      const target = users.find((u) => u.id === userId) || users[0] || INITIAL_USERS[0];
+      safeStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, target.id);
+      this.logActivity(target.name, target.role, 'Switched Active Session', 'SYSTEM', `Active session switched to ${target.name} (${target.role})`);
+      return target;
+    } catch {
+      return INITIAL_USERS[0];
+    }
   }
 
   static updateCommissionRate(userId: string, newRate: number): void {
@@ -1365,7 +1374,7 @@ export class NexusDatabase {
     saveData(STORAGE_KEYS.APPROVALS, INITIAL_APPROVALS);
     saveData(STORAGE_KEYS.ACTIVITY_LOGS, INITIAL_ACTIVITY_LOGS);
     saveData(STORAGE_KEYS.TASKS, INITIAL_TASKS);
-    localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, 'user-founder');
+    safeStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, 'user-founder');
   }
 
   // Business Tasks
