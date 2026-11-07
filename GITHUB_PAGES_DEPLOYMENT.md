@@ -38,13 +38,20 @@ By default, Vite tries to load assets from the root domain:
 
 ---
 
-### Method 2: Manual Deploy via `gh-pages` Branch or Dist Upload
-If you prefer building locally and deploying the `/dist` folder:
+### Method 2: Direct Branch Deploy using the `/docs` Folder (Zero Setup)
+NEXUS automatically copies the production build into the `/docs` folder during `npm run build`.
+1. Run `npm run build`
+2. Push your code to GitHub.
+3. In your GitHub repository **Settings** → **Pages**:
+   - Under **Build and deployment** → **Source**, select **Deploy from a branch**.
+   - Under **Branch**, select `main` (or `master`) and change the folder from `/ (root)` to **`/docs`**.
+   - Click **Save**.
+4. In under 60 seconds, your site is live!
 
-1. Run build:
-   ```bash
-   npm run build
-   ```
-2. In your GitHub repo **Settings** → **Pages**:
-   - Select **Deploy from a branch**.
-   - Choose `gh-pages` branch (or `main` with `/dist` folder if using a separate branch).
+---
+
+### Method 3: Deploy via `gh-pages` Branch
+If you prefer deploying from an isolated `gh-pages` branch:
+1. Run `npm run build`
+2. Push the contents of the `/dist` directory to your `gh-pages` branch.
+3. Under **Settings** → **Pages**, select `gh-pages` branch and `/ (root)`.

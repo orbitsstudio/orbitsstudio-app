@@ -80,10 +80,12 @@ export const DatabaseSettingsModal: React.FC<DatabaseSettingsModalProps> = ({
       const content = event.target?.result as string;
       const ok = NexusDatabase.restoreFromBackup(content);
       if (ok) {
-        alert('NEXUS Database restored successfully! Reloading...');
-        window.location.reload();
+        setTestingStatus('NEXUS Database restored successfully! Reloading session...');
+        setIsSuccess(true);
+        setTimeout(() => window.location.reload(), 800);
       } else {
-        alert('Failed to parse backup JSON file.');
+        setTestingStatus('Failed to parse backup JSON file. Please ensure valid NEXUS backup format.');
+        setIsSuccess(false);
       }
     };
     reader.readAsText(file);

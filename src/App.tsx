@@ -111,61 +111,67 @@ export default function App() {
   // Web Speech API Voice Recognition setup
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      try {
+        const SpeechRecognition =
+          (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-      if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
+        if (SpeechRecognition) {
+          const recognition = new SpeechRecognition();
+          recognition.continuous = false;
+          recognition.interimResults = false;
+          recognition.lang = 'en-US';
 
-        recognition.onstart = () => {
-          setIsVoiceListening(true);
-        };
+          recognition.onstart = () => {
+            setIsVoiceListening(true);
+          };
 
-        recognition.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript.toLowerCase();
-          console.log('[NEXUS Voice]', transcript);
+          recognition.onresult = (event: any) => {
+            const transcript = event.results?.[0]?.[0]?.transcript?.toLowerCase() || '';
+            console.log('[NEXUS Voice]', transcript);
 
-          // Handle voice navigation or open AI assistant
-          if (transcript.includes('lead')) {
-            setActiveTab('leads');
-          } else if (transcript.includes('client')) {
-            setActiveTab('clients');
-          } else if (transcript.includes('project')) {
-            setActiveTab('projects');
-          } else if (transcript.includes('finance') || transcript.includes('profit')) {
-            setActiveTab('finances');
-          } else if (transcript.includes('invoice') || transcript.includes('quote')) {
-            setActiveTab('invoices');
-          } else if (transcript.includes('approval')) {
-            setActiveTab('approvals');
-          } else {
-            // General query - launch AI Assistant drawer
-            setIsAIOpen(true);
-          }
-          setIsVoiceListening(false);
-        };
+            // Handle voice navigation or open AI assistant
+            if (transcript.includes('lead')) {
+              setActiveTab('leads');
+            } else if (transcript.includes('client')) {
+              setActiveTab('clients');
+            } else if (transcript.includes('project')) {
+              setActiveTab('projects');
+            } else if (transcript.includes('finance') || transcript.includes('profit')) {
+              setActiveTab('finances');
+            } else if (transcript.includes('invoice') || transcript.includes('quote')) {
+              setActiveTab('invoices');
+            } else if (transcript.includes('approval')) {
+              setActiveTab('approvals');
+            } else {
+              // General query - launch AI Assistant drawer
+              setIsAIOpen(true);
+            }
+            setIsVoiceListening(false);
+          };
 
-        recognition.onerror = (e: any) => {
-          console.warn('[NEXUS Voice Error]', e);
-          setIsVoiceListening(false);
-        };
+          recognition.onerror = (e: any) => {
+            console.warn('[NEXUS Voice Error]', e);
+            setIsVoiceListening(false);
+          };
 
-        recognition.onend = () => {
-          setIsVoiceListening(false);
-        };
+          recognition.onend = () => {
+            setIsVoiceListening(false);
+          };
 
-        recognitionRef.current = recognition;
+          recognitionRef.current = recognition;
+        }
+      } catch (err) {
+        console.warn('[NEXUS Voice Init Skipped]', err);
       }
     }
   }, []);
 
   const toggleVoice = () => {
     if (!recognitionRef.current) {
-      alert(
-        'Speech Recognition is not supported by your current browser. Voice push-to-talk works best in Chrome on Android and Desktop.'
+      showToast(
+        'Speech Recognition Unavailable',
+        'Voice push-to-talk works best in Chrome on Android and Desktop.',
+        'info'
       );
       return;
     }
